@@ -28,6 +28,7 @@ out/
 resources/application.yml
 resources/application-local.yml
 resources/application-prod.yml
+resources/application-common.yml
 
 ### NetBeans ###
 /nbproject/private/
