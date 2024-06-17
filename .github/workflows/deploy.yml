@@ -41,7 +41,7 @@ jobs:
           echo "${{ secrets.APPLICATION_PROD }}" > src/main/resources/application-prod.yml
           find src
           
-        # 등록해둔 Github Secrets의 내용을 이용해서 yml 파일의 내용을 써줍니다.
+          # 등록해둔 Github Secrets의 내용을 이용해서 yml 파일의 내용을 써줍니다.
           echo "$APPLICATION" > ./application.yml
           echo "$APPLICATION_COMMON" > ./application-common.yml
           echo "$APPLICATION_PROD" > ./application-prod.yml
