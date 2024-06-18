@@ -2,51 +2,66 @@
 
 REPOSITORY=/home/ubuntu/app
 LOG_DIR=$REPOSITORY/logs
-LOG_FILE=$REPOSITORY/logs/deploy.txt
-
-if [ ! -d "$LOG_DIR" ]; then
-  echo "로그 디렉토리 없음 $LOG_DIR 디렉토리 생성" | sudo mkdir -p $LOG_DIR
-fi
-
 TODAY=$(date +%Y-%m-%d)
+LOG_FILE=$LOG_DIR/deploy-$TODAY.txt
 
-echo "deploy.sh 시작" | sudo tee -a $LOG_FILE
-sudo chmod 666 "$LOG_LOG_FILE"
 
-cd $REPOSITORY || echo "repository 없음 $REPOSITORY" | sudo tee -a $LOG_FILE
-echo "현재 디렉토리: $REPOSITORY" | sudo tee -a $LOG_FILE
+if [ ! -f "$LOG_FILE" ]; then
+    echo "로그 파일 없음 $LOG_FILE, 파일 생성" | sudo tee -a "$LOG_FILE"
+    sudo chmod 666 "$LOG_FILE"
+fi
 
-APP_NAME=delivery
 
-CURRENT_PID=$(pgrep -f $APP_NAME)
+# 환경변수 DOCKER_APP_NAME을 delivery으로 설정
+DOCKER_APP_NAME=delivery
 
-if [ -z "$CURRENT_PID" ]
-then
-  echo "실행중인 서비스 없음." | sudo tee -a $LOG_FILE
+# 실행중인 blue가 있는지 확인
+# 프로젝트의 실행 중인 컨테이너를 확인하고, 해당 컨테이너가 실행 중인지 여부를 EXIST_BLUE 변수에 저장
+EXIST_BLUE=$(sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f docker-compose.blue.yml ps | grep Up)
+
+# 배포 시작한 날짜와 시간을 기록
+echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >>  sudo tee -a "$LOG_FILE"
+
+# green이 실행중이면 blue up
+# EXIST_BLUE 변수가 비어있는지 확인
+if [ -z "$EXIST_BLUE" ]; then
+
+  # 로그 파일(/home/ec2-user/deploy.log)에 "blue up - blue 배포 : port:8081"이라는 내용을 추가
+  echo "blue 배포 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >> sudo tee -a "$LOG_FILE"
+
+	# docker-compose.blue.yml 파일을 사용하여 spring-blue 프로젝트의 컨테이너를 빌드하고 실행
+	sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f docker-compose.blue.yml up -d --build
+
+  # 30초 동안 대기
+  sleep 30
+
+  # /home/ec2-user/deploy.log: 로그 파일에 "green 중단 시작"이라는 내용을 추가
+  echo "green 중단 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >> sudo tee -a "$LOG_FILE"
+
+  # docker-compose.green.yml 파일을 사용하여 spring-green 프로젝트의 컨테이너를 중지
+  sudo docker-compose -p ${DOCKER_APP_NAME}-green -f docker-compose.green.yml down
+
+   # 사용하지 않는 이미지 삭제
+  sudo docker image prune -af
+
+  echo "green 중단 완료 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >> sudo tee -a "$LOG_FILE"
+
+# blue가 실행중이면 green up
 else
-  echo "kill -15 $CURRENT_PID" | sudo tee -a $LOG_FILE
-  kill -15 "$CURRENT_PID"
-  sleep 5
+	echo "green 배포 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >> sudo tee -a "$LOG_FILE"
+	# -p: 프로젝트 이름 지정, -f: 다른 컴포즈 파일 지정, -d: 백그라운드에서 실행, --build: 컨테이너를 시작하기 전에 이미지를 다시 빌드
+	sudo docker-compose -p ${DOCKER_APP_NAME}-green -f docker-compose.green.yml up -d --build
+
+  sleep 30
+
+  echo "blue 중단 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >> sudo tee -a "$LOG_FILE"
+  sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f docker-compose.blue.yml down
+  sudo docker image prune -af
+
+  echo "blue 중단 완료 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >>  sudo tee -a "$LOG_FILE"
 fi
 
-echo "새 애플리케이션 배포" | sudo tee -a $LOG_FILE
-JAR_NAME=$(ls $REPOSITORY | grep '.jar' | tail -n 1)
-echo "jar 이름 : $JAR_NAME" | sudo tee -a $LOG_FILE
-JAR_PATH=$REPOSITORY/$JAR_NAME
+  echo "배포 종료  : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" >>  sudo tee -a "$LOG_FILE"
 
-if [ ! -f "$LOG_DIR/delivery-$TODAY.txt" ]; then
-    echo "로그 파일 없음 $LOG_DIR/delivery-$TODAY.txt, 파일 생성" | sudo tee -a $LOG_DIR/delivery-"$TODAY".txt
-    sudo chmod 666 $LOG_DIR/delivery-"$TODAY".txt
-fi
-
-# 실행
-nohup java -jar "$JAR_PATH" --spring.profiles.active=production > $LOG_DIR/delivery-"$TODAY".txt 2>&1 &
-
-# 실행된 프로세스ID 확인
-RUNNING_PROCESS=$(ps aux | grep java | grep "$JAR_NAME")
-if [ -z "$RUNNING_PROCESS" ]
-then
-  echo "어플리케이션 프로세스가 실행되고 있지 않습니다." | sudo tee -a $LOG_FILE
-else
-  echo "어플리케이션 프로세스 확인: $RUNNING_PROCESS" | sudo tee -a $LOG_FILE
-fi
+  echo "===================== 배포 완료 =====================" >>  sudo tee -a "$LOG_FILE"
+  echo >>  sudo tee -a "$LOG_FILE"
