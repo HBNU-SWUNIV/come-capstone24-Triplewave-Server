@@ -6,6 +6,8 @@ files:
   - source: /
     destination: /home/ubuntu/app
     overwrite: yes
+    runas: ubuntu
+
 file_exists_behavior: OVERWRITE
 # 파일 및 디렉토리에 관련된 설정
 permissions:
@@ -18,4 +20,3 @@ hooks:
   AfterInstall:
     - location: deploy.sh
       timeout: 60
-      runas: ubuntu
