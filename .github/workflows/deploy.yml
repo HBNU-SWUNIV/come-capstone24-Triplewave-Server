@@ -62,9 +62,9 @@ jobs:
       - name: zip file 생성
         run: |
           mkdir deploy
-          cp ./application.yml ./deploy/
-          cp ./application-common.yml ./deploy/
-          cp ./application-prod.yml ./deploy/
+          cp ./docker/Dockerfile ./deploy/
+          cp ./docker/docker-compose.blue.yml ./deploy/
+          cp ./docker/docker-compose.green.yml ./deploy/          
           cp ./appspec.yml ./deploy/
           cp ./scripts/*.sh ./deploy/
           cp ./build/libs/*.jar ./deploy/
