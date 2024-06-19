@@ -15,7 +15,7 @@ services:
   nginx:
     image: ngnix
     ports:
-      - "80:80" # Nginx가 80 포트에서 수신해서 내부 포트 80으로 전달
+      - "80:9000" # Nginx가 80 포트에서 수신해서 내부 포트 9000으로 전달
     volumes:
       - ./default.conf:/etc/nginx/conf.d
     depends_on:
