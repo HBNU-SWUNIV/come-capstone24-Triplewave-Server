@@ -1,5 +1,5 @@
 #blue
-version: '3'
+# version: '3' : 버전 없어도 동작
 services:
   # 서비스의 이름
   backend:
