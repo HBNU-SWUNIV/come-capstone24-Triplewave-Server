@@ -17,7 +17,7 @@ DOCKER_APP_NAME=delivery
 
 # 실행중인 blue가 있는지 확인
 # 프로젝트의 실행 중인 컨테이너를 확인하고, 해당 컨테이너가 실행 중인지 여부를 EXIST_BLUE 변수에 저장
-EXIST_BLUE=$(sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" ps | grep Up)
+EXIST_BLUE=$(sudo docker compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" ps | grep Up)
 
 # 배포 시작한 날짜와 시간을 기록
 echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FILE"
@@ -30,7 +30,7 @@ if [ -z "$EXIST_BLUE" ]; then
   echo "blue 배포 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" | sudo tee -a "$LOG_FILE"
 
 	# docker-compose.blue.yml 파일을 사용하여 spring-blue 프로젝트의 컨테이너를 빌드하고 실행
-	sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" up -d --build
+	sudo docker compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" up -d --build
 
   # 30초 동안 대기
   sleep 30
@@ -39,7 +39,7 @@ if [ -z "$EXIST_BLUE" ]; then
   echo "green 중단 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" | sudo tee -a "$LOG_FILE"
 
   # docker-compose.green.yml 파일을 사용하여 spring-green 프로젝트의 컨테이너를 중지
-  sudo docker-compose -p ${DOCKER_APP_NAME}-green -f "$REPOSITORY/docker-compose.green.yml" down
+  sudo docker compose -p ${DOCKER_APP_NAME}-green -f "$REPOSITORY/docker-compose.green.yml" down
 
    # 사용하지 않는 이미지 삭제
   sudo docker image prune -af
@@ -50,12 +50,12 @@ if [ -z "$EXIST_BLUE" ]; then
 else
 	echo "green 배포 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" | sudo tee -a "$LOG_FILE"
 	# -p: 프로젝트 이름 지정, -f: 다른 컴포즈 파일 지정, -d: 백그라운드에서 실행, --build: 컨테이너를 시작하기 전에 이미지를 다시 빌드
-	sudo docker-compose -p ${DOCKER_APP_NAME}-green -f "$REPOSITORY/docker-compose.green.yml" up -d --build
+	sudo docker compose -p ${DOCKER_APP_NAME}-green -f "$REPOSITORY/docker-compose.green.yml" up -d --build
 
   sleep 30
 
   echo "blue 중단 시작 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" | sudo tee -a "$LOG_FILE"
-  sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" down
+  sudo docker compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" down
   sudo docker image prune -af
 
   echo "blue 중단 완료 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FILE"
