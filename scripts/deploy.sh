@@ -17,7 +17,7 @@ DOCKER_APP_NAME=delivery
 
 # 실행중인 blue가 있는지 확인
 # 프로젝트의 실행 중인 컨테이너를 확인하고, 해당 컨테이너가 실행 중인지 여부를 EXIST_BLUE 변수에 저장
-EXIST_BLUE=$(sudo docker compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.blue.yml" ps | grep Up)
+EXIST_BLUE=$(sudo docker compose -f "$REPOSITORY/docker-compose.blue.yml" ps | grep Up)
 
 # 배포 시작한 날짜와 시간을 기록
 echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FILE"
