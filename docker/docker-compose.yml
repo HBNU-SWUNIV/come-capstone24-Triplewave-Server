@@ -1,8 +1,8 @@
-#blue
-# version: '3' : 버전 없어도 동작
+#green
+#version: '3.8' : 버전 없어도 동작
 services:
   # 서비스의 이름
-  backend:
+  blue:
     # 현재 디렉토리에서의 Dockerfile을 사용하여 Docker 이미지를 빌드
     build:
       context: .
@@ -14,11 +14,22 @@ services:
     # 컨테이너의 이름
     container_name: delivery-blue
 
+  green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # 호스트의 9002 포트와 컨테이너의 9000 포트를 매핑
+    ports:
+      - "9002:9000"
+    # 컨테이너의 이름
+    container_name: delivery-green
+
   nginx:
     image: nginx
     ports:
       - "80:9000" # Nginx가 80 포트에서 수신해서 내부 포트 9000으로 전달
     volumes:
+    # 도커컴포즈 파일이 있는 디렉토리의 nginx.conf 파일을 nginx 컨테이너의 /etc/nginx/conf.d/nginx.conf로  복사
       - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
-    depends_on:
-      - backend
+
