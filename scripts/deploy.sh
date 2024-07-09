@@ -11,17 +11,18 @@ if [ ! -f "$LOG_FILE" ]; then
     sudo chmod 666 "$LOG_FILE"
 fi
 
-# Nginx가 없는 경우 Nginx 서비스 시작
-if ! docker ps | grep -q nginx; then
-    sudo docker-compose up -d nginx
-fi
-
 # 환경변수 DOCKER_APP_NAME을 delivery으로 설정
 DOCKER_APP_NAME=delivery
 
+# Nginx가 없는 경우 Nginx 서비스 시작
+if ! docker ps | grep nginx; then
+    sudo docker compose -p ${DOCKER_APP_NAME}-nginx -f "$REPOSITORY/docker-compose.yml" up nginx
+fi
+
+
 # 실행중인 blue가 있는지 확인
 # 프로젝트의 실행 중인 컨테이너를 확인하고, 해당 컨테이너가 실행 중인지 여부를 EXIST_BLUE 변수에 저장
-EXIST_BLUE=$(sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f docker-compose.yml ps blue | grep Up)
+EXIST_BLUE=$(sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.yml" ps blue | grep Up)
 
 # 배포 시작한 날짜와 시간을 기록
 echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FILE"
