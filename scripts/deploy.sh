@@ -25,7 +25,7 @@ fi
 EXIST_BLUE=$(sudo docker-compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.yml" ps blue | grep Up)
 
 # 배포 시작한 날짜와 시간을 기록
-echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FILE"
+echo "배포 시작일자 : $(date +%Y)-$(date +%m)-$(date +%d) $(date +%H):$(date +%M):$(date +%S)" |  sudo tee -a "$LOG_FIL   E"
 
 # green이 실행중이면 blue up
 # EXIST_BLUE 변수가 비어있는지 확인
