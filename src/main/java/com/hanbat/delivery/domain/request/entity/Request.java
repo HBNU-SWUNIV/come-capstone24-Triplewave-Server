@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,8 +35,8 @@ public class Request {
 	private Member requester;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "requestee_id", nullable = false)
-	private Member requestee;
+	@JoinColumn(name = "receiver_id", nullable = false)
+	private Member receiver;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "destination_id", nullable = false)
@@ -57,6 +58,33 @@ public class Request {
 
 	@Column(name = "status_time", columnDefinition = "DATETIME", nullable = false)
 	private LocalDateTime statusTime;
+
+	@Builder
+	public Request(Member requester, Member receiver, Location destination, String stuff, String message, RequestStatus status, LocalDateTime statusTime) {
+		this.requester = requester;
+		this.receiver = receiver;
+		this.destination = destination;
+		this.stuff = stuff;
+		this.message = message;
+		this.status = status;
+		this.statusTime = statusTime;
+	}
+
+	public void updateDeparture(Location departure) {
+		this.departure = departure;
+	}
+
+	public void updateAcceptedStatus() {
+		this.status = RequestStatus.ACCEPTED;
+	}
+
+	public void updateInProgressStatus() {
+		this.status = RequestStatus.IN_PROGRESS;
+	}
+
+	public void updateDeliveredStatus() {
+		this.status = RequestStatus.DELIVERED;
+	}
 
 
 
