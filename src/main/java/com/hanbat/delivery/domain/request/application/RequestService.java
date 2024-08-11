@@ -96,7 +96,7 @@ public class RequestService {
 		Request request = requestRepository.findById(orderAcceptedRequest.getRequestId())
 			.orElseThrow(() -> new CustomException(ErrorCode.REQUEST_NOT_FOUND));
 
-		// 현재 사용자가 주문서의 수신자가 아닌 경우, 에러 발생
+		// 현재 사용자가 주문서의 수신자가 아니고, 현재 사용자가 주문서의 발송자도 아닌 경우, 에러 발생
 		if (!request.getReceiver().getId().equals(userId) && !request.getRequester().getId().equals(userId)) {
 			throw new CustomException(ErrorCode.RECEIVER_IS_NOT_RIGHT);
 		}
