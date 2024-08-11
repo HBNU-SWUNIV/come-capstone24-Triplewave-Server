@@ -86,4 +86,67 @@ public class RequestService {
 		return OrderResponse.fromRequest(request);
 	}
 
+
+	// 주문 수락
+	@Transactional
+	public OrderAcceptedResponse acceptRequest(OrderAcceptedRequest orderAcceptedRequest) {
+
+		Long userId = 2L;
+
+		Request request = requestRepository.findById(orderAcceptedRequest.getRequestId())
+			.orElseThrow(() -> new CustomException(ErrorCode.REQUEST_NOT_FOUND));
+
+		// 현재 사용자가 주문서의 수신자가 아닌 경우, 에러 발생
+		if (!request.getReceiver().getId().equals(userId) && !request.getRequester().getId().equals(userId)) {
+			throw new CustomException(ErrorCode.RECEIVER_IS_NOT_RIGHT);
+		}
+
+		Location location = locationRepository.findByName(orderAcceptedRequest.getDeparture())
+				.orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+
+		request.updateDeparture(location);
+		request.updateAcceptedStatus();
+
+		// 로봇에게 네비게이션 명령 전달
+		try {
+			WebSocketClient client = new StandardWebSocketClient();
+			WebSocketSession session = client.execute(new RosWebSocketHandler(), rosBridgeApiUrl).get();
+			WebSocketMessage<String> webSocketMessage = createRobotNavigationMessage(location);
+			session.sendMessage(webSocketMessage);
+
+
+			request.updateInProgressStatus();
+			return OrderAcceptedResponse.fromRequest(request);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			throw new CustomException(ErrorCode.ROSBRIDGE_NOT_CONNECTED);
+		}
+
+	}
+
+	private static WebSocketMessage<String> createRobotNavigationMessage(Location location) {
+		JSONObject position = new JSONObject();
+		position.put("x", location.getPositionX());
+		position.put("y", location.getPositionY());
+		position.put("z", location.getPositionZ());
+
+		JSONObject orientation = new JSONObject();
+		orientation.put("x", location.getOrientationX());
+		orientation.put("y", location.getOrientationY());
+		orientation.put("z", location.getOrientationZ());
+		orientation.put("w", location.getOrientationW());
+
+		JSONObject pose = new JSONObject();
+		pose.put("position", position);
+		pose.put("orientation", orientation);
+
+		JSONObject header = new JSONObject();
+		header.put("frame_id", "map");
+
+		JSONObject msg = new JSONObject();
+		msg.put("op", "publish");
+		msg.put("topic", "/move_base_simple/goal");
+		msg.put("msg", new JSONObject().put("header", header).put("pose", pose));
+		return new TextMessage(msg.toString());
+	}
 }
