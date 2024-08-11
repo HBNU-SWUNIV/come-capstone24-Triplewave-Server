@@ -26,6 +26,10 @@ public class Member {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
+	private Role role;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private Building building;
 
 	@Enumerated(EnumType.STRING)
