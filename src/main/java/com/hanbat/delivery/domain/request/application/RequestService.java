@@ -124,6 +124,10 @@ public class RequestService {
 			WebSocketMessage<String> statusMessage = subscribeMoveBaseStatusTopic();
 			session.sendMessage(statusMessage);
 
+			// goal id를 얻기위해 move_base/goal 구독
+			WebSocketMessage<String> goalIdMessage = subscribeMoveBaseGoalTopic();
+			session.sendMessage(goalIdMessage);
+
 			return OrderAcceptedResponse.fromRequest(request);
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -174,4 +178,11 @@ public class RequestService {
 		return new TextMessage(message.toString());
 	}
 
+	private static WebSocketMessage<String> subscribeMoveBaseGoalTopic() {
+		JSONObject message = new JSONObject();
+		message.put("op", "subscribe");
+		message.put("topic", "/move_base/goal");
+		message.put("type", "move_base_msgs/MoveBaseActionGoal");
+		return new TextMessage(message.toString());
+	}
 }
