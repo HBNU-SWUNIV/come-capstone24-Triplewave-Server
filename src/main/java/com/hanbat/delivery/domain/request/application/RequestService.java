@@ -111,11 +111,15 @@ public class RequestService {
 		try {
 			WebSocketClient client = new StandardWebSocketClient();
 			WebSocketSession session = client.execute(new RosWebSocketHandler(), rosBridgeApiUrl).get();
-			WebSocketMessage<String> webSocketMessage = createRobotNavigationMessage(location);
-			session.sendMessage(webSocketMessage);
-
+			WebSocketMessage<String> navigationMessage = createRobotNavigationMessage(location);
+			session.sendMessage(navigationMessage);
 
 			request.updateInProgressStatus();
+
+			// 네비게이션 로봇 위치 파악 토픽 구독
+			WebSocketMessage<String> odomMessage = subscribeOdomTopic();
+			session.sendMessage(odomMessage);
+
 			return OrderAcceptedResponse.fromRequest(request);
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -149,4 +153,14 @@ public class RequestService {
 		msg.put("msg", new JSONObject().put("header", header).put("pose", pose));
 		return new TextMessage(msg.toString());
 	}
+
+	private static WebSocketMessage<String> subscribeOdomTopic() {
+		JSONObject message = new JSONObject();
+		message.put("op", "subscribe");
+		message.put("topic", "/odom");
+		message.put("type", "nav_msgs/Odometry");
+		return new TextMessage(message.toString());
+	}
+
+
 }
