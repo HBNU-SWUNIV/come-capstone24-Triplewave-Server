@@ -61,6 +61,13 @@ public class RosWebSocketHandler implements WebSocketHandler {
 					Long status = (Long)statusObject.get("status");
 					log.info(status.toString());
 
+					// status가 1이면, 새로 생긴 네비게이션이므로, 해당 goalId를 파싱
+					if (status == 1 && currentGoalId == null) {
+						JSONObject goalIdObject = (JSONObject)statusObject.get("goal_id");
+						currentGoalId = goalIdObject.get("id").toString();
+						log.info("Goal ID with status 1 : " + currentGoalId);
+					}
+
 				}
 			}
 		}
