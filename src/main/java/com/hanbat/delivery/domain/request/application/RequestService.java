@@ -120,6 +120,10 @@ public class RequestService {
 			WebSocketMessage<String> odomMessage = subscribeOdomTopic();
 			session.sendMessage(odomMessage);
 
+			// 네비게이션 로봇 목적지 도착 상태파악 토픽 구독
+			WebSocketMessage<String> statusMessage = subscribeMoveBaseStatusTopic();
+			session.sendMessage(statusMessage);
+
 			return OrderAcceptedResponse.fromRequest(request);
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -154,6 +158,14 @@ public class RequestService {
 		return new TextMessage(msg.toString());
 	}
 
+	private static WebSocketMessage<String> subscribeMoveBaseStatusTopic() {
+		JSONObject message = new JSONObject();
+		message.put("op", "subscribe");
+		message.put("topic", "/move_base/status");
+		message.put("type", "actionlib_msgs/GoalStatusArray");
+		return new TextMessage(message.toString());
+	}
+
 	private static WebSocketMessage<String> subscribeOdomTopic() {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
@@ -161,6 +173,5 @@ public class RequestService {
 		message.put("type", "nav_msgs/Odometry");
 		return new TextMessage(message.toString());
 	}
-
 
 }
