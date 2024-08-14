@@ -44,7 +44,28 @@ public class RosWebSocketHandler implements WebSocketHandler {
 			log.info("Position Z: " + position.get("z"));
 
 		}
+
+		// /move_base/goal 토픽에서 받은 메세지 파싱
+		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/move_base/goal")) {
+			JSONObject goalMsg = (JSONObject)jsonMessage.get("msg");
+			log.info(goalMsg.toString());
+		}
+		// /move_base/status 토픽에서 받은 메세지 파싱
+		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/move_base/status")) {
+			JSONObject statusMsg = (JSONObject)jsonMessage.get("msg");
+			JSONArray statusList = (JSONArray)statusMsg.get("status_list");
+
+			if (!statusList.isEmpty()) {
+				for (int i = 0; i < statusList.size(); i++) {
+					JSONObject statusObject = (JSONObject)statusList.get(i);
+					Long status = (Long)statusObject.get("status");
+					log.info(status.toString());
+
+				}
+			}
+		}
 	}
+
 
 	@Override
 	public void handleTransportError(WebSocketSession webSocketSession, Throwable throwable) throws Exception {
