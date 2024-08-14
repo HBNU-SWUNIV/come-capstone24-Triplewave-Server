@@ -68,6 +68,29 @@ public class RosWebSocketHandler implements WebSocketHandler {
 						log.info("Goal ID with status 1 : " + currentGoalId);
 					}
 
+					JSONObject goalIdObject = (JSONObject)statusObject.get("goal_id");
+					String goalId = goalIdObject.get("id").toString();
+					log.info("Parsing Goal Id : " + goalId);
+					log.info("Current Goal Id : " + currentGoalId);
+
+					// 해당 goalId인 네비게이션이고, 도착했다면,
+					if (status == 3 && goalId.equals(currentGoalId)) {
+						// odom 토픽 구독 해제
+						JSONObject unsubscribeMessageOdom = new JSONObject();
+						unsubscribeMessageOdom.put("op", "unsubscribe");
+						unsubscribeMessageOdom.put("topic", "/odom");
+						webSocketSession.sendMessage(new TextMessage(unsubscribeMessageOdom.toString()));
+						log.info("Unsubscribe Odom Topic");
+
+						// status 토픽 구독 해제
+						JSONObject unsubscribeMessageStatus = new JSONObject();
+						unsubscribeMessageStatus.put("op", "unsubscribe");
+						unsubscribeMessageStatus.put("topic", "/move_base/status");
+						webSocketSession.sendMessage(new TextMessage(unsubscribeMessageStatus.toString()));
+						log.info("Unsubscribe move_base/status Topic");
+						log.info("Navigation Completed");
+					}
+
 				}
 			}
 		}
