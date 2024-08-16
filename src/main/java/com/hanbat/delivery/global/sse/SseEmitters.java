@@ -19,6 +19,7 @@ public class SseEmitters {
 
 	// thread-safe한 자료구조(CopyOnWriteArrayList)를 사용하지 않으면 ConcurrnetModificationException 발생 가능성 존재
 	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+	private JSONObject currentPosition;
 
 	public SseEmitter addEmitter(SseEmitter emitter) {
 		this.emitters.add(emitter);
@@ -37,6 +38,26 @@ public class SseEmitters {
 		});
 
 		return emitter;
+	}
+
+	public void updatePosition(JSONObject position) {
+		this.currentPosition = position;
+		sendPosition(position);
+	}
+
+
+	public void sendPosition(JSONObject position) {
+		for (SseEmitter emitter : emitters) {
+			CompletableFuture.runAsync(() -> {
+				try {
+					emitter.send(SseEmitter.event()
+						.name("positionUpdate")
+						.data(position.toString()));
+				} catch (IOException e) {
+					handleEmitterError(emitter);
+				}
+			});
+		}
 	}
 
 	private void handleEmitterError(SseEmitter emitter) {
