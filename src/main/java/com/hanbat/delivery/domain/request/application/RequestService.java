@@ -25,6 +25,7 @@ import com.hanbat.delivery.domain.request.entity.RequestStatus;
 import com.hanbat.delivery.domain.request.repository.RequestRepository;
 import com.hanbat.delivery.global.error.exception.CustomException;
 import com.hanbat.delivery.global.error.exception.ErrorCode;
+import com.hanbat.delivery.global.sse.SseEmitters;
 import com.hanbat.delivery.global.websocket.handler.RosWebSocketHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class RequestService {
 	private final RequestRepository requestRepository;
 	private final MemberRepository memberRepository;
 	private final LocationRepository locationRepository;
+	private final SseEmitters sseEmitters;
 
 	@Value("${ros.api.uri}")
 	private String rosBridgeApiUrl;
@@ -110,7 +112,7 @@ public class RequestService {
 		// 로봇에게 네비게이션 명령 전달
 		try {
 			WebSocketClient client = new StandardWebSocketClient();
-			WebSocketSession session = client.execute(new RosWebSocketHandler(), rosBridgeApiUrl).get();
+			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters), rosBridgeApiUrl).get();
 			WebSocketMessage<String> navigationMessage = createRobotNavigationMessage(location);
 			session.sendMessage(navigationMessage);
 

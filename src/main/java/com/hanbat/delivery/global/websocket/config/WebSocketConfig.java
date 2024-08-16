@@ -8,6 +8,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
+import com.hanbat.delivery.global.sse.SseEmitters;
 import com.hanbat.delivery.global.websocket.handler.RosWebSocketHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -15,13 +16,16 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
+
+	private final SseEmitters sseEmitters;
+
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 		webSocketHandlerRegistry.addHandler(rosWebSocketHandler());
 	}
 	
 	public WebSocketHandler rosWebSocketHandler() {
-		return new RosWebSocketHandler();
+		return new RosWebSocketHandler(sseEmitters);
 	}
 	
 	@Bean
