@@ -29,6 +29,7 @@ public class RosWebSocketHandler implements WebSocketHandler {
 
 	ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	Boolean canSendPosition = true;
+	Boolean navigationCompleted = false;
 
 	public RosWebSocketHandler(SseEmitters sseEmitters) {
 		this.sseEmitters = sseEmitters;
@@ -111,8 +112,13 @@ public class RosWebSocketHandler implements WebSocketHandler {
 						webSocketSession.sendMessage(new TextMessage(unsubscribeMessageStatus.toString()));
 						log.info("Unsubscribe move_base/status Topic");
 						log.info("Navigation Completed");
+						navigationCompleted = true;
+						break;
 					}
 
+				}
+				if (navigationCompleted) {
+					sseEmitters.sendDeliveryCompleted();
 				}
 			}
 		}
