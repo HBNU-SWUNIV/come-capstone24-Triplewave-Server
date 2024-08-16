@@ -2,10 +2,10 @@ package com.hanbat.delivery.global.websocket.handler;
 
 
 
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class RosWebSocketHandler implements WebSocketHandler {
+
 
 	private final SseEmitters sseEmitters;
 
@@ -44,11 +45,14 @@ public class RosWebSocketHandler implements WebSocketHandler {
 	@Override
 	public void handleMessage(WebSocketSession webSocketSession, WebSocketMessage<?> webSocketMessage) throws
 		Exception {
+
 		// log.info("Received message from ROSBridge server: " + webSocketMessage.getPayload());
+
 		JSONParser parser = new JSONParser();
 		JSONObject jsonMessage = (JSONObject)parser.parse(webSocketMessage.getPayload().toString());
 
 		// log.info(jsonMessage.toString());
+
 
 		// odom 토픽에서 받은 메세지 파싱
 		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/odom")) {
@@ -82,6 +86,7 @@ public class RosWebSocketHandler implements WebSocketHandler {
 					JSONObject statusObject = (JSONObject)statusList.get(i);
 					Long status = (Long)statusObject.get("status");
 					log.info(status.toString());
+
 
 					// status가 1이면, 새로 생긴 네비게이션이므로, 해당 goalId를 파싱
 					if (status == 1 && currentGoalId == null) {
@@ -133,5 +138,6 @@ public class RosWebSocketHandler implements WebSocketHandler {
 	public boolean supportsPartialMessages() {
 		return false;
 	}
+
 
 }
