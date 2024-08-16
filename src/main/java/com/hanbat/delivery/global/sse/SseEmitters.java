@@ -60,6 +60,20 @@ public class SseEmitters {
 		}
 	}
 
+	public void sendDeliveryCompleted() {
+		for (SseEmitter emitter : emitters) {
+			CompletableFuture.runAsync(() -> {
+				try {
+					emitter.send(SseEmitter.event()
+						.name("deliveryCompleted")
+						.data("배달이 완료되었습니다!"));
+				} catch (IOException e) {
+					handleEmitterError(emitter);
+				}
+			});
+		}
+	}
+
 	private void handleEmitterError(SseEmitter emitter) {
 		try {
 			emitter.completeWithError(new Exception("Error sending SSE event"));
