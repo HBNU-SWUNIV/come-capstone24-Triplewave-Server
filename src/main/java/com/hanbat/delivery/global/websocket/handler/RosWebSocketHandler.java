@@ -2,6 +2,10 @@ package com.hanbat.delivery.global.websocket.handler;
 
 
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,12 +16,25 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.hanbat.delivery.global.sse.SseEmitters;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class RosWebSocketHandler implements WebSocketHandler {
+
+	private final SseEmitters sseEmitters;
+
 	String currentGoalId = null;
+
+	ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+	Boolean canSendPosition = true;
+
+	public RosWebSocketHandler(SseEmitters sseEmitters) {
+		this.sseEmitters = sseEmitters;
+		// 3초마다 위치 전송
+		scheduler.scheduleAtFixedRate(() -> canSendPosition = true, 0, 3, TimeUnit.SECONDS);
+	}
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
@@ -27,7 +44,7 @@ public class RosWebSocketHandler implements WebSocketHandler {
 	@Override
 	public void handleMessage(WebSocketSession webSocketSession, WebSocketMessage<?> webSocketMessage) throws
 		Exception {
-		log.info("Received message from ROSBridge server: " + webSocketMessage.getPayload());
+		// log.info("Received message from ROSBridge server: " + webSocketMessage.getPayload());
 		JSONParser parser = new JSONParser();
 		JSONObject jsonMessage = (JSONObject)parser.parse(webSocketMessage.getPayload().toString());
 
@@ -40,9 +57,14 @@ public class RosWebSocketHandler implements WebSocketHandler {
 			JSONObject poseValue = (JSONObject)poseKey.get("pose");
 			JSONObject position = (JSONObject)poseValue.get("position");
 			log.info("Position X: " + position.get("x"));
-			log.info("Position Y: " + position.get("y"));
-			log.info("Position Z: " + position.get("z"));
+			// log.info("Position Y: " + position.get("y"));
+			// log.info("Position Z: " + position.get("z"));
 
+			// 위치 데이터를 SseEmitters에 전달
+			if (canSendPosition) {
+				canSendPosition = false;
+				sseEmitters.updatePosition(position);
+			}
 		}
 
 		// /move_base/goal 토픽에서 받은 메세지 파싱
@@ -111,6 +133,5 @@ public class RosWebSocketHandler implements WebSocketHandler {
 	public boolean supportsPartialMessages() {
 		return false;
 	}
-
 
 }
