@@ -6,8 +6,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.json.simple.JSONObject;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hanbat.delivery.global.websocket.dto.MapResponse;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +76,32 @@ public class SseEmitters {
 					handleEmitterError(emitter);
 				}
 			});
+		}
+	}
+
+	public void sendMapData(MapResponse mapResponse) {
+		String jsonStr = convertToJson(mapResponse);
+		for (SseEmitter emitter : emitters) {
+			CompletableFuture.runAsync(() -> {
+				try {
+					emitter.send(SseEmitter.event()
+						.name("sendMapData")
+						.data(jsonStr, MediaType.APPLICATION_JSON));
+				} catch (IOException e) {
+					handleEmitterError(emitter);
+				}
+			});
+		}
+	}
+
+	private String convertToJson(MapResponse mapResponse) {
+		// Use a JSON library like Jackson to convert MapResponse to JSON string
+		ObjectMapper objectMapper = new ObjectMapper();
+		try {
+			return objectMapper.writeValueAsString(mapResponse);
+		} catch (JsonProcessingException e) {
+			log.error(e.getMessage(), e);
+			return "{}";
 		}
 	}
 
