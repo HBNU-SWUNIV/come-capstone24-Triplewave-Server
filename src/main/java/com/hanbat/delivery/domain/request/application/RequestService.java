@@ -113,6 +113,12 @@ public class RequestService {
 		try {
 			WebSocketClient client = new StandardWebSocketClient();
 			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters), rosBridgeApiUrl).get();
+
+			// 맵을 띄우기위해 /map 토픽 구독 -> 데이터가 너무 많아 에러 발생
+			// ros에서 파싱해서 rosbridge에 데이터 전달, 서버에서 해당 토픽 구독
+			WebSocketMessage<String> mapMessage = subscribeMapTopic();
+			session.sendMessage(mapMessage);
+
 			WebSocketMessage<String> navigationMessage = createRobotNavigationMessage(location);
 			session.sendMessage(navigationMessage);
 
@@ -185,6 +191,13 @@ public class RequestService {
 		message.put("op", "subscribe");
 		message.put("topic", "/move_base/goal");
 		message.put("type", "move_base_msgs/MoveBaseActionGoal");
+		return new TextMessage(message.toString());
+	}
+
+	private static WebSocketMessage<String> subscribeMapTopic() {
+		JSONObject message = new JSONObject();
+		message.put("op", "subscribe");
+		message.put("topic", "/send/map_data");
 		return new TextMessage(message.toString());
 	}
 }
