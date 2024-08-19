@@ -181,8 +181,8 @@ public class RequestService {
 	private static WebSocketMessage<String> subscribeOdomTopic() {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
-		message.put("topic", "/odom");
-		message.put("type", "nav_msgs/Odometry");
+		message.put("topic", "/amcl_pose");
+		message.put("type", "geometry_msgs/PoseWithCovarianceStamped");
 		return new TextMessage(message.toString());
 	}
 
