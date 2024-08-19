@@ -2,9 +2,16 @@ package com.hanbat.delivery.global.websocket.handler;
 
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,6 +24,8 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.hanbat.delivery.global.sse.SseEmitters;
+import com.hanbat.delivery.global.websocket.dto.MapResponse;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -45,12 +54,43 @@ public class RosWebSocketHandler implements WebSocketHandler {
 	@Override
 	public void handleMessage(WebSocketSession webSocketSession, WebSocketMessage<?> webSocketMessage) throws
 		Exception {
-		// log.info("Received message from ROSBridge server: " + webSocketMessage.getPayload());
+		log.info("Received message from ROSBridge server: " + webSocketMessage.getPayload());
 		JSONParser parser = new JSONParser();
 		JSONObject jsonMessage = (JSONObject)parser.parse(webSocketMessage.getPayload().toString());
 
 		// log.info(jsonMessage.toString());
 
+		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/send/map_data")) {
+			JSONObject msg = (JSONObject)jsonMessage.get("msg");
+			String data = msg.get("data").toString();
+
+			// Base64 디코딩
+			byte[] compressedData = Base64.getDecoder().decode(data);
+
+			// 압축 해제
+			String jsonString = decompress(compressedData);
+
+			// JSON 문자열을 JSON 객체로 변환
+			JSONObject jsonMapData = (JSONObject)parser.parse(jsonString);
+
+			JSONArray mapDataArray = (JSONArray)jsonMapData.get("data");
+
+			// JSONArray를 List<Integer>로 변환
+			List<Integer> integerList = new ArrayList<>();
+			for (Object o : mapDataArray) {
+				integerList.add(Integer.parseInt(o.toString()));
+			}
+
+			MapResponse mapResponse = MapResponse.builder()
+				.width(Long.parseLong(jsonMapData.get("width").toString()))
+				.height(Long.parseLong(jsonMapData.get("height").toString()))
+				.data(integerList)
+				.build();
+
+			log.info("Decoded and decompressed data: " + mapResponse.getHeight().toString());
+			sseEmitters.sendMapData(mapResponse);
+
+		}
 		// odom 토픽에서 받은 메세지 파싱
 		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/odom")) {
 			JSONObject odomMsg = (JSONObject)jsonMessage.get("msg");
@@ -132,12 +172,28 @@ public class RosWebSocketHandler implements WebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession webSocketSession, CloseStatus closeStatus) throws Exception {
+		log.info(closeStatus.getReason());
 		log.info("Disconnected from ROSBridge server");
 	}
 
 	@Override
 	public boolean supportsPartialMessages() {
 		return false;
+	}
+
+	private static String decompress(byte[] compressedData) throws IOException, DataFormatException {
+		Inflater inflater = new Inflater();
+		inflater.setInput(compressedData);
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(compressedData.length);
+		byte[] buffer = new byte[1024];
+		while (!inflater.finished()) {
+			int count = inflater.inflate(buffer);
+			outputStream.write(buffer, 0, count);
+		}
+		inflater.end();
+
+		return new String(outputStream.toByteArray(), "UTF-8");
 	}
 
 }
