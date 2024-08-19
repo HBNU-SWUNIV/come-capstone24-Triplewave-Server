@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 맵트래킹 테스트</title>
+    <style>
+        #mapContainer {
+            width: 600px;
+            height: 600px;
+            border: 1px solid black;
+            overflow: auto;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+<h1>Map Data Viewer</h1>
+<div id="mapContainer">
+    <canvas id="mapCanvas"></canvas>
+</div>
+
+<script>
+
+    let mapResolution = 0.05;
+    let mapOriginX = 0;
+    let mapOriginY = 0;
+
+    const eventSource = new EventSource('http://localhost:8080/robot/position');
+
+
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 서버로부터 'sendMapData' 이벤트를 받았을 때 실행
+    eventSource.addEventListener('sendMapData', function(event) {
+        try {
+
+            const mapData = JSON.parse(event.data);
+
+            // 맵 데이터에서 해상도와 원점 좌표 가져오기
+            mapResolution = mapData.resolution;
+            mapOriginX = mapData.origin.position.x;
+            mapOriginY = mapData.origin.position.y;
+
+            // 캔버스 크기를 맵 데이터에 맞게 조정
+            canvas.width = mapData.width;
+            canvas.height = mapData.height;
+            console.log(`Canvas width: ${canvas.width}, height: ${canvas.height}`);
+
+            // 맵 데이터를 그릴 ImageData 객체 생성
+            const imageData = ctx.createImageData(mapData.width, mapData.height);
+
+            // mapData에서 받은 픽셀 데이터로 ImageData 채우기
+            for (let i = 0; i < mapData.data.length; i++) {
+                const value = mapData.data[i];
+
+                // -1은 회색(미지정 영역), 그 외는 하얀색(장애물 또는 통로)
+                const color = value === -1 ? 0 : 255;
+
+                // RGBA 값 설정
+                imageData.data[i * 4] = color;
+                imageData.data[i * 4 + 1] = color;
+                imageData.data[i * 4 + 2] = color;
+                imageData.data[i * 4 + 3] = 255;
+            }
+
+            // 설정된 ImageData를 캔버스에 그리기
+            ctx.putImageData(imageData, 0, 0);
+        } catch (e) {
+            console.error('Error parsing or displaying map data:', e);
+        }
+    });
+
+    // 서버로부터 'positionUpdate' 이벤트를 받았을 때 실행
+    eventSource.addEventListener('positionUpdate', function(event) {
+        try {
+
+            const positionData = JSON.parse(event.data);
+            const x = positionData.x;
+            const y = positionData.y;
+            console.log(`Position X: ${x}, Y: ${y}`);
+
+            // 맵 좌표를 캔버스 좌표로 변환
+            const canvasX = (-y - mapOriginX) / mapResolution;
+            const canvasY = (-x - mapOriginY) / mapResolution;
+            console.log(`Canvas X: ${canvasX}, Y: ${canvasY}`)
+
+            // 로봇 위치에 레드점 찍기
+            if (positionData && x !== undefined && y !== undefined) {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(canvasX, canvasY, 5, 0, Math.PI * 2); // radius 5
+                ctx.fill();
+            }
+        } catch (e) {
+            console.error('Error parsing or displaying position data:', e);
+        }
+    });
+
+    eventSource.onerror = function() {
+        console.error('Error: Failed to receive data.');
+    };
+</script>
+</body>
+</html>
