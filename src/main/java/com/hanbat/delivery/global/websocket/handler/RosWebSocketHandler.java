@@ -69,6 +69,7 @@ public class RosWebSocketHandler implements WebSocketHandler {
 
 			// 압축 해제
 			String jsonString = decompress(compressedData);
+			// log.info(jsonString);
 
 			// JSON 문자열을 JSON 객체로 변환
 			JSONObject jsonMapData = (JSONObject)parser.parse(jsonString);
@@ -81,18 +82,23 @@ public class RosWebSocketHandler implements WebSocketHandler {
 				integerList.add(Integer.parseInt(o.toString()));
 			}
 
+			// orgin.x, origin.y 받기
+			JSONObject originMapData = (JSONObject)jsonMapData.get("origin");
+
 			MapResponse mapResponse = MapResponse.builder()
 				.width(Long.parseLong(jsonMapData.get("width").toString()))
 				.height(Long.parseLong(jsonMapData.get("height").toString()))
+				.resolution(Double.parseDouble(jsonMapData.get("resolution").toString()))
+				.origin(originMapData)
 				.data(integerList)
 				.build();
 
-			log.info("Decoded and decompressed data: " + mapResponse.getHeight().toString());
+			log.info("Decoded and decompressed data: " + mapResponse.getResolution().toString());
 			sseEmitters.sendMapData(mapResponse);
 
 		}
 		// odom 토픽에서 받은 메세지 파싱
-		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/odom")) {
+		if (jsonMessage.containsKey("topic") && jsonMessage.get("topic").equals("/amcl_pose")) {
 			JSONObject odomMsg = (JSONObject)jsonMessage.get("msg");
 			JSONObject poseKey = (JSONObject)odomMsg.get("pose");
 			JSONObject poseValue = (JSONObject)poseKey.get("pose");
