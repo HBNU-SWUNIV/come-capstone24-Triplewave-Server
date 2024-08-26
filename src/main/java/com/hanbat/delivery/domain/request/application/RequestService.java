@@ -112,7 +112,7 @@ public class RequestService {
 		// 로봇에게 네비게이션 명령 전달
 		try {
 			WebSocketClient client = new StandardWebSocketClient();
-			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters), rosBridgeApiUrl).get();
+			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters, this), rosBridgeApiUrl).get();
 
 			// 맵을 띄우기위해 /map 토픽 구독 -> 데이터가 너무 많아 에러 발생
 			// ros에서 파싱해서 rosbridge에 데이터 전달, 서버에서 해당 토픽 발행 후 구독

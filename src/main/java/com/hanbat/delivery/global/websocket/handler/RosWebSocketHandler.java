@@ -16,6 +16,7 @@ import java.util.zip.Inflater;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -23,6 +24,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import com.hanbat.delivery.domain.request.application.RequestService;
 import com.hanbat.delivery.global.sse.SseEmitters;
 import com.hanbat.delivery.global.websocket.dto.MapResponse;
 
@@ -34,14 +36,16 @@ public class RosWebSocketHandler implements WebSocketHandler {
 
 	private final SseEmitters sseEmitters;
 
+	private final RequestService requestService;
 	String currentGoalId = null;
 
 	ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	Boolean canSendPosition = true;
 	Boolean navigationCompleted = false;
 
-	public RosWebSocketHandler(SseEmitters sseEmitters) {
+	public RosWebSocketHandler(SseEmitters sseEmitters, RequestService requestService) {
 		this.sseEmitters = sseEmitters;
+		this.requestService = requestService;
 		// 3초마다 위치 전송
 		scheduler.scheduleAtFixedRate(() -> canSendPosition = true, 0, 3, TimeUnit.SECONDS);
 	}
