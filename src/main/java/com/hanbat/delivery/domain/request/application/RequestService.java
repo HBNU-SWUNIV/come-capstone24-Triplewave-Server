@@ -42,6 +42,8 @@ public class RequestService {
 	private final LocationRepository locationRepository;
 	private final SseEmitters sseEmitters;
 
+	private Request currentRequest;
+
 	@Value("${ros.api.uri}")
 	private String rosBridgeApiUrl;
 
@@ -103,6 +105,8 @@ public class RequestService {
 			throw new CustomException(ErrorCode.RECEIVER_IS_NOT_RIGHT);
 		}
 
+		updateCurrentRequest(request);
+
 		Location location = locationRepository.findByName(orderAcceptedRequest.getDeparture())
 				.orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
 
@@ -144,6 +148,18 @@ public class RequestService {
 			throw new CustomException(ErrorCode.ROSBRIDGE_NOT_CONNECTED);
 		}
 
+	}
+
+	private void updateCurrentRequest(Request currentRequest) {
+		log.info("update current request");
+		this.currentRequest = currentRequest;
+	}
+
+	@Transactional
+	public void updateRequestStatus() {
+		log.info(currentRequest.getId().toString());
+		currentRequest.updateDeliveredStatus();
+		requestRepository.save(currentRequest);
 	}
 
 	private static WebSocketMessage<String> createRobotNavigationMessage(Location location) {
