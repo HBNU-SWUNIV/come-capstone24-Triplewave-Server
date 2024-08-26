@@ -125,7 +125,7 @@ public class RequestService {
 			request.updateInProgressStatus();
 
 			// 네비게이션 로봇 위치 파악 토픽 구독
-			WebSocketMessage<String> odomMessage = subscribeOdomTopic();
+			WebSocketMessage<String> odomMessage = subscribeAmclTopic();
 			session.sendMessage(odomMessage);
 
 			// 네비게이션 로봇 목적지 도착 상태파악 토픽 구독
@@ -178,7 +178,7 @@ public class RequestService {
 		return new TextMessage(message.toString());
 	}
 
-	private static WebSocketMessage<String> subscribeOdomTopic() {
+	private static WebSocketMessage<String> subscribeAmclTopic() {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
 		message.put("topic", "/amcl_pose");
