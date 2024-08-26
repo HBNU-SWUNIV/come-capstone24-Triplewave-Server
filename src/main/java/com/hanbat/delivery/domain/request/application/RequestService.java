@@ -42,6 +42,8 @@ public class RequestService {
 	private final LocationRepository locationRepository;
 	private final SseEmitters sseEmitters;
 
+	private Request currentRequest;
+
 	@Value("${ros.api.uri}")
 	private String rosBridgeApiUrl;
 
@@ -103,6 +105,8 @@ public class RequestService {
 			throw new CustomException(ErrorCode.RECEIVER_IS_NOT_RIGHT);
 		}
 
+		updateCurrentRequest(request);
+
 		Location location = locationRepository.findByName(orderAcceptedRequest.getDeparture())
 				.orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
 
@@ -112,10 +116,12 @@ public class RequestService {
 		// 로봇에게 네비게이션 명령 전달
 		try {
 			WebSocketClient client = new StandardWebSocketClient();
-			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters), rosBridgeApiUrl).get();
+			WebSocketSession session = client.execute(new RosWebSocketHandler(sseEmitters, this), rosBridgeApiUrl).get();
 
 			// 맵을 띄우기위해 /map 토픽 구독 -> 데이터가 너무 많아 에러 발생
-			// ros에서 파싱해서 rosbridge에 데이터 전달, 서버에서 해당 토픽 구독
+			// ros에서 파싱해서 rosbridge에 데이터 전달, 서버에서 해당 토픽 발행 후 구독
+			WebSocketMessage<String> advertiseMapMessage = advertiseMapTopic();
+			session.sendMessage(advertiseMapMessage);
 			WebSocketMessage<String> mapMessage = subscribeMapTopic();
 			session.sendMessage(mapMessage);
 
@@ -125,7 +131,7 @@ public class RequestService {
 			request.updateInProgressStatus();
 
 			// 네비게이션 로봇 위치 파악 토픽 구독
-			WebSocketMessage<String> odomMessage = subscribeOdomTopic();
+			WebSocketMessage<String> odomMessage = subscribeAmclTopic();
 			session.sendMessage(odomMessage);
 
 			// 네비게이션 로봇 목적지 도착 상태파악 토픽 구독
@@ -142,6 +148,18 @@ public class RequestService {
 			throw new CustomException(ErrorCode.ROSBRIDGE_NOT_CONNECTED);
 		}
 
+	}
+
+	private void updateCurrentRequest(Request currentRequest) {
+		log.info("update current request");
+		this.currentRequest = currentRequest;
+	}
+
+	@Transactional
+	public void updateRequestStatus() {
+		log.info(currentRequest.getId().toString());
+		currentRequest.updateDeliveredStatus();
+		requestRepository.save(currentRequest);
 	}
 
 	private static WebSocketMessage<String> createRobotNavigationMessage(Location location) {
@@ -174,15 +192,13 @@ public class RequestService {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
 		message.put("topic", "/move_base/status");
-		message.put("type", "actionlib_msgs/GoalStatusArray");
 		return new TextMessage(message.toString());
 	}
 
-	private static WebSocketMessage<String> subscribeOdomTopic() {
+	private static WebSocketMessage<String> subscribeAmclTopic() {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
 		message.put("topic", "/amcl_pose");
-		message.put("type", "geometry_msgs/PoseWithCovarianceStamped");
 		return new TextMessage(message.toString());
 	}
 
@@ -190,7 +206,14 @@ public class RequestService {
 		JSONObject message = new JSONObject();
 		message.put("op", "subscribe");
 		message.put("topic", "/move_base/goal");
-		message.put("type", "move_base_msgs/MoveBaseActionGoal");
+		return new TextMessage(message.toString());
+	}
+
+	private static WebSocketMessage<String> advertiseMapTopic() {
+		JSONObject message = new JSONObject();
+		message.put("op", "advertise");
+		message.put("topic", "/send/map_data");
+		message.put("type", "std_msgs/String");
 		return new TextMessage(message.toString());
 	}
 
