@@ -169,6 +169,7 @@ public class RosWebSocketHandler implements WebSocketHandler {
 				}
 				if (navigationCompleted) {
 					sseEmitters.sendDeliveryCompleted();
+					requestService.updateRequestStatus();
 				}
 			}
 		}
