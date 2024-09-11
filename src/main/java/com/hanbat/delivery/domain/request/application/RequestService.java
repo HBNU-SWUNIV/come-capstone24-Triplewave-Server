@@ -1,9 +1,12 @@
 package com.hanbat.delivery.domain.request.application;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
@@ -148,6 +151,17 @@ public class RequestService {
 			throw new CustomException(ErrorCode.ROSBRIDGE_NOT_CONNECTED);
 		}
 
+	}
+
+	// 주문 배달까지 모두 완료된 것만 조회 + 1주/1개월/2개월별 날짜 조회
+	public List<OrderResponse> getCompletedRequestsByDateRange(String dateRange) {
+		List<Request> requests = requestRepository.findCompletedRequestsByDateRange(dateRange)
+			.orElseThrow(() -> new CustomException(ErrorCode.REQUEST_NOT_FOUND));
+		List<OrderResponse> orderResponses = new ArrayList<>();
+		for (Request request : requests) {
+			orderResponses.add(OrderResponse.fromRequest(request));
+		}
+		return orderResponses;
 	}
 
 	private void updateCurrentRequest(Request currentRequest) {
