@@ -1,5 +1,6 @@
 package com.hanbat.delivery.domain.request.controller;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hanbat.delivery.domain.request.application.RequestService;
@@ -42,6 +44,11 @@ public class RequestController {
 	@PostMapping("/accept")
 	public ResponseEntity<OrderAcceptedResponse> acceptRequest(@RequestBody @Valid OrderAcceptedRequest request) {
 		return ResponseEntity.status(HttpStatus.OK).body(requestService.acceptRequest(request));
+	}
+
+	@GetMapping("/completed/get")
+	public ResponseEntity<List<OrderResponse>> getCompletedRequests(@RequestParam String dateRange) {
+		return ResponseEntity.ok(requestService.getCompletedRequestsByDateRange(dateRange));
 	}
 
 }
