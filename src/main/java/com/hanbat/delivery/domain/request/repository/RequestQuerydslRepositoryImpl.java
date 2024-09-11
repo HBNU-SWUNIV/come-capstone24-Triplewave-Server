@@ -10,7 +10,7 @@ import java.util.Optional;
 import com.hanbat.delivery.domain.request.entity.Request;
 import com.hanbat.delivery.domain.request.entity.RequestStatus;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -24,39 +24,50 @@ public class RequestQuerydslRepositoryImpl implements RequestQuerydslRepository 
 
 	@Override
 	public Optional<List<Request>> findCompletedRequestsByDateRange(String dateRange) {
-		return Optional.ofNullable(queryFactory
+
+		JPAQuery<Request> query = queryFactory
 			.selectFrom(request)
-			.where(addDateFilter(dateRange),
-				request.status.eq(RequestStatus.COMPLETED))
+			.where(request.status.eq(RequestStatus.COMPLETED));
+
+		if (dateRange != null) {
+			BooleanExpression dateFilter = addDateFilter(dateRange);
+			if (dateFilter != null) {
+				query.where(dateFilter);
+			} else {
+				return Optional.empty();
+			}
+		}
+		return Optional.ofNullable(query
 			.orderBy(request.statusTime.desc())
 			.fetch());
 	}
 
 	// 기간별 필터링
 	private BooleanExpression addDateFilter(String dateRange) {
-		if (dateRange != null) {
-			switch (dateRange) {
-				case "1주" -> {
-					return request.statusTime.between(
-						LocalDateTime.now().minusDays(7),
-						LocalDateTime.now()
-					);
-				}
-				case "1개월" -> {
-					return request.statusTime.between(
-						LocalDateTime.now().minusMonths(1),
-						LocalDateTime.now()
-					);
-				}
-				case "2개월" -> {
-					return request.statusTime.between(
-						LocalDateTime.now().minusMonths(2),
-						LocalDateTime.now()
-					);
-				}
+
+		switch (dateRange) {
+			case "1주" -> {
+				return request.statusTime.between(
+					LocalDateTime.now().minusDays(7),
+					LocalDateTime.now()
+				);
+			}
+			case "1개월" -> {
+				return request.statusTime.between(
+					LocalDateTime.now().minusMonths(1),
+					LocalDateTime.now()
+				);
+			}
+			case "2개월" -> {
+				return request.statusTime.between(
+					LocalDateTime.now().minusMonths(2),
+					LocalDateTime.now()
+				);
 			}
 
+			default -> {
+				return null;
+			}
 		}
-		return Expressions.asBoolean(true).isTrue();
 	}
 }
