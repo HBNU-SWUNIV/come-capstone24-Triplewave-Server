@@ -86,6 +86,8 @@ public class Request {
 		this.status = RequestStatus.DELIVERED;
 	}
 
+	public void updateCompletedStatus() {this.status= RequestStatus.COMPLETED;}
+
 
 
 }
