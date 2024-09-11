@@ -46,8 +46,13 @@ public class RequestController {
 		return ResponseEntity.status(HttpStatus.OK).body(requestService.acceptRequest(request));
 	}
 
+	@PostMapping("/complete/{requestId}")
+	public ResponseEntity<OrderResponse> completeRequest(@PathVariable("requestId") Long requestId) {
+		return ResponseEntity.status(HttpStatus.OK).body(requestService.confirmIfDelivered(requestId));
+	}
+
 	@GetMapping("/completed/get")
-	public ResponseEntity<List<OrderResponse>> getCompletedRequests(@RequestParam String dateRange) {
+	public ResponseEntity<List<OrderResponse>> getCompletedRequests(@RequestParam(name = "dateRange") String dateRange) {
 		return ResponseEntity.ok(requestService.getCompletedRequestsByDateRange(dateRange));
 	}
 
