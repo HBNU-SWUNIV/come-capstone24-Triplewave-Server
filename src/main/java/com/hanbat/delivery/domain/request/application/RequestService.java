@@ -153,6 +153,23 @@ public class RequestService {
 
 	}
 
+	// 배달 완료 시 사용지가 확인 버튼 클릭
+	@Transactional
+	public OrderResponse confirmIfDelivered(Long requestId) {
+		Long userId = 2L;
+
+		Request request = requestRepository.findById(requestId)
+			.orElseThrow(() -> new CustomException(ErrorCode.REQUEST_NOT_FOUND));
+
+		if (!request.getReceiver().getId().equals(userId)) {
+			throw new CustomException(ErrorCode.RECEIVER_IS_NOT_RIGHT);
+		}
+
+		request.updateCompletedStatus();
+		return OrderResponse.fromRequest(request);
+
+	}
+
 	// 주문 배달까지 모두 완료된 것만 조회 + 1주/1개월/2개월별 날짜 조회
 	public List<OrderResponse> getCompletedRequestsByDateRange(String dateRange) {
 		List<Request> requests = requestRepository.findCompletedRequestsByDateRange(dateRange)
