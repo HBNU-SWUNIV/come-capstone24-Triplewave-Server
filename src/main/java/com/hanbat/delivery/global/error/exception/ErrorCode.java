@@ -22,6 +22,7 @@ public enum ErrorCode {
 
 	// Member
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "멤버를 찾을 수 없습니다."),
+	PROF_TA_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 학과의 교수님, 조교님을 찾을 수 없습니다."),
 
 	// Request
 	REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."),

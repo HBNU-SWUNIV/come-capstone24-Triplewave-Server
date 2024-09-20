@@ -40,8 +40,9 @@ public class Member {
 	private String schoolId;
 
 	@Builder
-	public Member(String name, Building building, Major major, String schoolId) {
+	public Member(String name, Role role, Building building, Major major, String schoolId) {
 		this.name = name;
+		this.role = role;
 		this.building = building;
 		this.major = major;
 		this.schoolId = schoolId;
