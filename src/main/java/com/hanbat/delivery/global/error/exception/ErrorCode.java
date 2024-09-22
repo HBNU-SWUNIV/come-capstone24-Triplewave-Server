@@ -27,6 +27,8 @@ public enum ErrorCode {
 	// Request
 	REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."),
 	RECEIVER_IS_NOT_RIGHT(HttpStatus.BAD_REQUEST, "해당 주문의 수신자가 아닙니다."),
+	SENT_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "요청한 내역을 찾을 수 없습니다."),
+	RECEIVED_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "요청받은 내역을 찾을 수 없습니다."),
 
 	// Location
 	LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "위치를 찾을 수 없습니다."),
