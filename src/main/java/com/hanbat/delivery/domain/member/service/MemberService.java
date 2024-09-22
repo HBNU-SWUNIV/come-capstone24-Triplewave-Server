@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hanbat.delivery.domain.member.dto.MemberInfoResponse;
 import com.hanbat.delivery.domain.member.dto.ProfAndTAResponse;
 import com.hanbat.delivery.domain.member.dto.ProfAndTAWithCountResponse;
+import com.hanbat.delivery.domain.member.entity.Major;
 import com.hanbat.delivery.domain.member.entity.Member;
 import com.hanbat.delivery.domain.member.entity.Role;
 import com.hanbat.delivery.domain.member.repository.MemberRepository;
@@ -64,6 +65,17 @@ public class MemberService {
 			.profAndTAResponses(profAndTAResponses)
 			.build();
 
+	}
+
+	// 이름과 학과 검색 시 다른 사람들 조회
+	public List<MemberInfoResponse> getMembersBySearchAndMajor(String major, String search) {
+		List<Member> members = memberRepository.findMemberByMajorAndSearch(major, search);
+
+		List<MemberInfoResponse> memberInfoResponses = new ArrayList<>();
+		for (Member m : members) {
+			memberInfoResponses.add(MemberInfoResponse.fromMember(m));
+		}
+		return memberInfoResponses;
 	}
 
 }

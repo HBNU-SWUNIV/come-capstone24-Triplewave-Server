@@ -15,4 +15,13 @@ public enum Major {
 	@JsonValue
 	private final String value;
 
+	public static Major fromValue(String value) {
+		for (Major major : Major.values()) {
+			if (major.value.equals(value)) {
+				return major;
+			}
+		}
+		throw new IllegalArgumentException("Unknown value: " + value);
+	}
+
 }

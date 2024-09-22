@@ -9,7 +9,7 @@ import com.hanbat.delivery.domain.member.entity.Major;
 import com.hanbat.delivery.domain.member.entity.Member;
 import com.hanbat.delivery.domain.member.entity.Role;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberQuerydslRepository {
 	@Query("SELECT m FROM Member m WHERE m.major = :major AND m.role IN (:roles)")
 	Optional<List<Member>> findProfAndTA(@Param("major")Major major, @Param("roles") List<Role> roles);
 
