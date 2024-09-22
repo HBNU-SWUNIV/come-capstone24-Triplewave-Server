@@ -1,5 +1,6 @@
 package com.hanbat.delivery.domain.request.application;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,42 @@ public class RequestService {
 
 		requestRepository.save(request);
 		return OrderResponse.fromRequest(request);
+
+	}
+
+	// 오늘 요청한 내역 조회
+	public List<OrderResponse> getRequestsSentToday(){
+		Long userId = 1L;
+
+		LocalDateTime startOfDay = LocalDate.now().atStartOfDay(); // 오늘 00:00:00
+		LocalDateTime endOfDay = startOfDay.plusDays(1); // 내일 00:00:00
+
+		List<Request> requests = requestRepository.findRequestsByDateAndRequester(startOfDay, endOfDay, userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.REQUEST_NOT_FOUND));
+
+		List<OrderResponse> orderResponses = new ArrayList<>();
+		for (Request request : requests) {
+			orderResponses.add(OrderResponse.fromRequest(request));
+		}
+		return orderResponses;
+
+	}
+
+	// 오늘 요청받은 내역 조회
+	public List<OrderResponse> getRequestsReceivedToday(){
+		Long userId = 2L;
+
+		LocalDateTime startOfDay = LocalDate.now().atStartOfDay(); // 오늘 00:00:00
+		LocalDateTime endOfDay = startOfDay.plusDays(1); // 내일 00:00:00
+
+		List<Request> requests = requestRepository.findRequestsByDateAndReceiver(startOfDay, endOfDay, userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.RECEIVED_REQUEST_NOT_FOUND));
+
+		List<OrderResponse> orderResponses = new ArrayList<>();
+		for (Request request : requests) {
+			orderResponses.add(OrderResponse.fromRequest(request));
+		}
+		return orderResponses;
 
 	}
 
