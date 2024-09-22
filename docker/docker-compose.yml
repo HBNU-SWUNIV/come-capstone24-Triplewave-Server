@@ -8,9 +8,9 @@ services:
       context: .
       dockerfile: Dockerfile
 
-    # 호스트의 8081 포트와 컨테이너의 80 포트를 매핑
+    # 호스트의 8001 포트와 컨테이너의 8000 포트를 매핑
     ports:
-      - "9001:9000"
+      - "8001:8000"
     # 컨테이너의 이름
     container_name: delivery-blue
 
@@ -19,17 +19,16 @@ services:
       context: .
       dockerfile: Dockerfile
 
-    # 호스트의 9002 포트와 컨테이너의 9000 포트를 매핑
+    # 호스트의 8002 포트와 컨테이너의 8000 포트를 매핑
     ports:
-      - "9002:9000"
+      - "8002:8000"
     # 컨테이너의 이름
     container_name: delivery-green
 
   nginx:
     image: nginx
     ports:
-      - "80:9000" # Nginx가 80 포트에서 수신해서 내부 포트 9000으로 전달
+      - "80:8000" # Nginx가 80 포트에서 수신해서 내부 포트 8000으로 전달
     volumes:
     # 도커컴포즈 파일이 있는 디렉토리의 nginx.conf 파일을 nginx 컨테이너의 /etc/nginx/conf.d/nginx.conf로  복사
       - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
-
