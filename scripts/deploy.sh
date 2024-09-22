@@ -28,8 +28,8 @@ if [ -z "$EXIST_BLUE" ]; then
     sleep 30
 
     echo "Green 중단 시작 : $(date '+%Y-%m-%d %H:%M:%S')" | sudo tee -a "$LOG_FILE"
-    sudo docker compose -p ${DOCKER_APP_NAME}-green -f "$REPOSITORY/docker-compose.yml" down
-    sudo docker image prune -af
+    sudo docker stop ${DOCKER_APP_NAME}-green
+    sudo docker rm ${DOCKER_APP_NAME}-green
 
     echo "Green 중단 완료 : $(date '+%Y-%m-%d %H:%M:%S')" | sudo tee -a "$LOG_FILE"
 
@@ -41,8 +41,8 @@ else
     sleep 30
 
     echo "Blue 중단 시작 : $(date '+%Y-%m-%d %H:%M:%S')" | sudo tee -a "$LOG_FILE"
-    sudo docker compose -p ${DOCKER_APP_NAME}-blue -f "$REPOSITORY/docker-compose.yml" down
-    sudo docker image prune -af
+    sudo docker stop ${DOCKER_APP_NAME}-blue
+    sudo docker rm ${DOCKER_APP_NAME}-blue
 
     echo "Blue 중단 완료 : $(date '+%Y-%m-%d %H:%M:%S')" | sudo tee -a "$LOG_FILE"
 fi
