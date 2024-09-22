@@ -56,4 +56,14 @@ public class RequestController {
 		return ResponseEntity.ok(requestService.getCompletedRequestsByDateRange(dateRange));
 	}
 
+	@GetMapping("/today/sent")
+	public ResponseEntity<List<OrderResponse>> getTodaySentRequests() {
+		return ResponseEntity.ok(requestService.getRequestsSentToday());
+	}
+
+	@GetMapping("/today/received")
+	public ResponseEntity<List<OrderResponse>> getTodayReceivedRequests() {
+		return ResponseEntity.ok(requestService.getRequestsReceivedToday());
+	}
+
 }
