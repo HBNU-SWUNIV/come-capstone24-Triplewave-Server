@@ -38,11 +38,11 @@ public class Request {
 	@JoinColumn(name = "receiver_id", nullable = false)
 	private Member receiver;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "destination_id", nullable = false)
 	private Location destination;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "departure_id")
 	private Location departure;
 
