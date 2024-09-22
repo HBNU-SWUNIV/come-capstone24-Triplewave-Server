@@ -21,13 +21,13 @@ public class Location {
 	@Column(columnDefinition = "CHAR(10)", nullable = false)
 	private String name;
 
-	@Column(name = "posistion_x", columnDefinition = "DOUBLE", nullable = false)
+	@Column(name = "position_x", columnDefinition = "DOUBLE", nullable = false)
 	private Double positionX;
 
-	@Column(name = "posistion_y", columnDefinition = "DOUBLE", nullable = false)
+	@Column(name = "position_y", columnDefinition = "DOUBLE", nullable = false)
 	private Double positionY;
 
-	@Column(name = "posistion_z",columnDefinition = "DOUBLE", nullable = false)
+	@Column(name = "position_z",columnDefinition = "DOUBLE", nullable = false)
 	private Double positionZ;
 
 	@Column(name = "orientation_x",columnDefinition = "DOUBLE", nullable = false)
